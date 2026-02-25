@@ -11,6 +11,7 @@ import pandas as pd
 import plotly.graph_objects as go
 import shap
 import streamlit as st
+from dotenv import load_dotenv
 
 try:
     import google.generativeai as genai
@@ -553,6 +554,7 @@ st.markdown(
 
 
 BASE_DIR = Path(__file__).resolve().parent
+load_dotenv(BASE_DIR / ".env")
 GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 if genai and GEMINI_KEY:
