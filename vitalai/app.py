@@ -559,7 +559,7 @@ GEMINI_KEY = os.environ.get("GEMINI_API_KEY", "")
 
 if genai and GEMINI_KEY:
     genai.configure(api_key=GEMINI_KEY)
-    GEMINI_MODEL = genai.GenerativeModel("gemini-1.5-flash")
+    GEMINI_MODEL = genai.GenerativeModel("gemini-2.5-flash")
 else:
     GEMINI_MODEL = None
 
