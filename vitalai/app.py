@@ -558,6 +558,15 @@ st.markdown(
     font-family: 'Plus Jakarta Sans', sans-serif !important;
     font-weight: 700 !important;
 }
+/* Fix invisible text: stDataFrame body cells */
+[data-testid="stDataFrame"] tbody tr td,
+[data-testid="stDataFrame"] tbody tr td * {
+    color: var(--text-body) !important;
+    font-size: 0.87rem !important;
+}
+[data-testid="stDataFrame"] tbody tr:nth-child(even) td { background: var(--bg-page) !important; }
+[data-testid="stDataFrame"] tbody tr:nth-child(odd)  td { background: var(--bg-card) !important; }
+
 /* Fix invisible text: st.table body cells */
 .stTable thead tr th {
     background: var(--primary-light) !important;
@@ -573,14 +582,20 @@ st.markdown(
 .stTable tbody tr:nth-child(odd)  td { background: var(--bg-card) !important; }
 .stTable { border-collapse: collapse !important; width: 100% !important; }
 
-/* Fix invisible text: general markdown paragraphs & list items in tabs */
-[data-testid="stTabs"] .stMarkdown p,
-[data-testid="stTabs"] .stMarkdown li,
-[data-testid="stTabs"] .stMarkdown span,
-.stMarkdown p, .stMarkdown li {
+/* Fix invisible text: general markdown paragraphs & list items */
+.stMarkdown p, .stMarkdown li, .stMarkdown span:not(.pill):not(.hero-badge):not(.mini-tag) {
     color: var(--text-body) !important;
-    font-size: 0.9rem;
     line-height: 1.7;
+}
+
+/* Fix AI card — lock ALL text to readable light color, kill teal link bleed */
+.ai-card .ai-copy,
+.ai-card .ai-copy *,
+.ai-card .ai-copy p,
+.ai-card .ai-copy span,
+.ai-card .ai-copy a {
+    color: #D0D2DF !important;
+    text-decoration: none !important;
 }
 
 /* ── Code blocks ── */
@@ -918,32 +933,34 @@ def render_output_panel(results: dict[str, Any]) -> None:
         go.Indicator(
             mode="gauge+number",
             value=results["confidence"],
-            title={"text": "Diabetes Risk Probability (%)"},
-            number={"suffix": "%", "font": {"color": "white", "family": "JetBrains Mono", "size": 34}},
+            title={"text": "Diabetes Risk Probability", "font": {"size": 15, "color": "#8B90A7", "family": "Plus Jakarta Sans"}},
+            number={"suffix": "%", "font": {"color": results["risk_color"], "family": "JetBrains Mono", "size": 42}},
             gauge={
-                "axis": {"range": [0, 100], "tickcolor": "white"},
-                "bar": {"color": results["risk_color"]},
+                "axis": {"range": [0, 100], "tickcolor": "#D0D4E8", "tickfont": {"color": "#8B90A7", "size": 11}},
+                "bar": {"color": results["risk_color"], "thickness": 0.28},
+                "bgcolor": "#F4F6FB",
+                "borderwidth": 0,
                 "steps": [
-                    {"range": [0, 40], "color": "rgba(52,199,89,0.35)"},
-                    {"range": [40, 65], "color": "rgba(255,149,0,0.35)"},
-                    {"range": [65, 100], "color": "rgba(255,59,48,0.35)"},
+                    {"range": [0, 40],  "color": "rgba(47,158,68,0.15)"},
+                    {"range": [40, 65], "color": "rgba(245,159,0,0.15)"},
+                    {"range": [65, 100],"color": "rgba(240,62,62,0.15)"},
                 ],
             },
         )
     )
     gauge.update_layout(
-        height=260,
-        margin={"t": 45, "b": 10, "l": 20, "r": 20},
-        paper_bgcolor="#1C1C1E",
-        plot_bgcolor="#1C1C1E",
-        font={"color": "white", "family": "Epilogue"},
+        height=270,
+        margin={"t": 30, "b": 10, "l": 20, "r": 20},
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
+        font={"color": "#3D4257", "family": "Inter"},
     )
     st.plotly_chart(gauge, use_container_width=True)
 
     shap_df = pd.DataFrame(results["shap_records"])
     shap_df["abs"] = shap_df["value"].abs()
     shap_sorted = shap_df.sort_values("abs", ascending=False).iloc[::-1]
-    bar_colors = np.where(shap_sorted["value"] >= 0, "#FF3B30", "#34C759")
+    bar_colors = np.where(shap_sorted["value"] >= 0, "#F03E3E", "#7C5CFC")
 
     shap_fig = go.Figure(
         go.Bar(
@@ -951,70 +968,57 @@ def render_output_panel(results: dict[str, Any]) -> None:
             y=shap_sorted["feature"],
             orientation="h",
             marker_color=bar_colors,
+            marker_line_width=0,
         )
     )
     shap_fig.update_layout(
-        title="What Drove This Prediction",
+        title={"text": "What Drove This Prediction", "font": {"size": 14, "color": "#1A1D2E", "family": "Plus Jakarta Sans"}, "x": 0},
         xaxis_title="SHAP Impact Value",
         yaxis_title="",
         height=360,
-        margin={"t": 60, "b": 35, "l": 30, "r": 20},
-        paper_bgcolor="#1C1C1E",
-        plot_bgcolor="#1C1C1E",
-        font={"color": "white", "family": "Epilogue"},
-        xaxis={"gridcolor": "#2C2C2E"},
-        yaxis={"gridcolor": "#2C2C2E"},
+        margin={"t": 50, "b": 35, "l": 10, "r": 20},
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
+        font={"color": "#3D4257", "family": "Inter", "size": 12},
+        xaxis={"gridcolor": "#E8EAF2", "zerolinecolor": "#D0D4E8"},
+        yaxis={"gridcolor": "#E8EAF2"},
     )
     st.plotly_chart(shap_fig, use_container_width=True)
 
-    comparison = pd.DataFrame(
-        [
-            {
-                "Aspect": "Data Format",
-                "BEFORE (Raw Values)": "Uninterpreted numbers",
-                "AFTER (AI Analysis)": "Structured risk profile",
-            },
-            {
-                "Aspect": "Risk Assessment",
-                "BEFORE (Raw Values)": "Unknown",
-                "AFTER (AI Analysis)": f"{results['confidence']:.1f}% confidence score",
-            },
-            {
-                "Aspect": "Key Concern",
-                "BEFORE (Raw Values)": "Not identified",
-                "AFTER (AI Analysis)": results["top_feature"],
-            },
-            {
-                "Aspect": "Action Guidance",
-                "BEFORE (Raw Values)": "None provided",
-                "AFTER (AI Analysis)": "Personalized recommendations",
-            },
-            {
-                "Aspect": "Explanation",
-                "BEFORE (Raw Values)": "Not available",
-                "AFTER (AI Analysis)": "AI-generated clinical report",
-            },
-        ]
-    )
-
-    styled_comp = (
-        comparison.style.hide(axis="index")
-        .set_table_styles(
-            [
-                {
-                    "selector": "th",
-                    "props": [("background-color", "#1C1C1E"), ("color", "#FFD60A"), ("font-weight", "700")],
-                },
-            ]
+    rows_html = ""
+    row_data = [
+        ("Data Format",    "Uninterpreted numbers", "Structured risk profile"),
+        ("Risk Assessment","Unknown",               f"{results['confidence']:.1f}% confidence score"),
+        ("Key Concern",    "Not identified",        html.escape(results['top_feature'])),
+        ("Action Guidance","None provided",         "Personalized recommendations"),
+        ("Explanation",    "Not available",         "AI-generated clinical report"),
+    ]
+    for i, (aspect, before, after) in enumerate(row_data):
+        bg = "#F4F6FB" if i % 2 == 0 else "#FFFFFF"
+        rows_html += (
+            f"<tr style='background:{bg}'>"
+            f"<td style='padding:10px 14px;color:#1A1D2E;font-weight:600;font-size:0.86rem;border-bottom:1px solid #E8EAF2'>{html.escape(aspect)}</td>"
+            f"<td style='padding:10px 14px;color:#8B90A7;font-size:0.85rem;border-bottom:1px solid #E8EAF2'>{html.escape(before)}</td>"
+            f"<td style='padding:10px 14px;color:#3D4257;font-size:0.85rem;border-bottom:1px solid #E8EAF2'>{after}</td>"
+            f"</tr>"
         )
-        .apply(
-            lambda row: [
-                "background-color: #F8F8FC" if row.name % 2 == 0 else "background-color: #FFFFFF" for _ in row
-            ],
-            axis=1,
-        )
+    st.markdown(
+        f"""
+<div style='border:1px solid #E8EAF2;border-radius:12px;overflow:hidden;margin-bottom:16px'>
+<table style='width:100%;border-collapse:collapse;font-family:Inter,sans-serif'>
+  <thead>
+    <tr style='background:#1A1D2E'>
+      <th style='padding:11px 14px;text-align:left;color:#F59F00;font-size:0.78rem;letter-spacing:0.6px;font-weight:700'>ASPECT</th>
+      <th style='padding:11px 14px;text-align:left;color:#F59F00;font-size:0.78rem;letter-spacing:0.6px;font-weight:700'>BEFORE (Raw Values)</th>
+      <th style='padding:11px 14px;text-align:left;color:#F59F00;font-size:0.78rem;letter-spacing:0.6px;font-weight:700'>AFTER (AI Analysis)</th>
+    </tr>
+  </thead>
+  <tbody>{rows_html}</tbody>
+</table>
+</div>
+""",
+        unsafe_allow_html=True,
     )
-    st.dataframe(styled_comp, use_container_width=True, hide_index=True)
 
     safe_text = "<br><br>".join(html.escape(p.strip()) for p in results["explanation"].split("\n\n") if p.strip())
     st.markdown(
@@ -1049,7 +1053,7 @@ def render_bottom_tabs() -> None:
                 {"Metric": "AUC-ROC", "Value": "0.834"},
             ]
         )
-        st.table(perf_df)
+        st.table(perf_df.set_index("Metric"))
         st.markdown(
             "How to improve accuracy: (1) Increase training data size, (2) Use XGBoost or deep learning, "
             "(3) Add more clinical features like HbA1c, (4) Apply SMOTE for class imbalance, "
