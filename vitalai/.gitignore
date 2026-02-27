@@ -1,4 +1,49 @@
+# Environment and secrets
 .env
-*.env
+.env.*
+!.env.example
+
+# Python bytecode and caches
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.hypothesis/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Packaging/build artifacts
+build/
+dist/
+site/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# Logs and local DBs
+*.log
+*.sqlite
+*.sqlite3
+
+# Editor and OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+Thumbs.db
+.DS_Store
+
+# Streamlit local settings/secrets
+.streamlit/secrets.toml
+
+# Project-generated ML artifacts
+model.pkl
+features.pkl
+confusion_matrix.png

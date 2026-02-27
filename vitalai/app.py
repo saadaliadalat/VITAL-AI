@@ -595,8 +595,8 @@ def load_model() -> tuple[Any, list[str]]:
 
 
 @st.cache_resource
-def load_explainer(model: Any) -> shap.TreeExplainer:
-    return shap.TreeExplainer(model)
+def load_explainer(_model: Any) -> shap.TreeExplainer:
+    return shap.TreeExplainer(_model)
 
 
 def get_shap_values(explainer: shap.TreeExplainer, input_df: pd.DataFrame) -> np.ndarray:
