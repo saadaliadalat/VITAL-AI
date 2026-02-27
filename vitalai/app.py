@@ -849,7 +849,6 @@ def render_sidebar() -> None:
   <div class='pipeline-item'><span class='pipeline-step'>5.</span>{icon('gemini')}<span>Gemini LLM Agent</span></div>
   <div class='pipeline-item'><span class='pipeline-step'>6.</span>{icon('dashboard')}<span>Output Dashboard</span></div>
 </div>
-<div class='sidebar-footer'>Course Project | Prof. Aburas | 2025</div>
 """,
             unsafe_allow_html=True,
         )
